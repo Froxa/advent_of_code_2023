@@ -190,17 +190,18 @@ Vec2 FindLoopStart(const Maze &maze, const Vec2 &s_pos) {
 }
 
 /**
- * Solves the "Advent of Code 2023 day 10" problem. Calculates how many steps along the main loop
+ * Solves the "Advent of Code 2023 day 10 part 1" problem. Calculates how many steps along the main loop
  * it takes to get from the starting position to the point farthest from the starting position.
  *
  * @param maze Instance of the day 10 problem.
  * @return The number of steps from the starting position to the farthest position.
  */
-unsigned Solve(const Maze &maze) {
+unsigned SolvePart1(const Maze &maze) {
     // find S
     const auto s_pos = FindS(maze);
 
     unsigned len = 0;
+
     auto prev = s_pos;
     auto curr = FindLoopStart(maze, s_pos);
 
@@ -229,12 +230,129 @@ unsigned Solve(const Maze &maze) {
     return len / 2 + 1;
 }
 
+/**
+ * Calculates the number of tiles that are enclosed by the main loop.
+ *
+ * @param maze Original maze.
+ * @param maze_hl Copy of maze but main loop tiles are replaced with '#'.
+ * @param top_left Top left corner of a bounding rectangle containing the main loop.
+ * @param bot_right Bottom right corner of a bounding rectangle containing the main loop.
+ * @return The number of enclosed tiles.
+ */
+unsigned CountEnclosed(const Maze &maze, const Maze &maze_hl, const Vec2 &top_left, const Vec2 &bot_right) {
+    unsigned enclosed = 0;
+
+    // count enclosed tiles
+    for (int y = top_left.y; y <= bot_right.y; ++y) {
+        bool inside = false;
+        char last_turn = 'X';
+
+        for (int x = top_left.x; x <= bot_right.x; ++x) {
+            char tile = maze[y][x];
+
+            // main loop?
+            if (maze_hl[y][x] == '#') {
+                switch (tile) {
+                    case '|':
+                        { inside ^= true; }
+                        break;
+                    case 'L':
+                        last_turn = 'L';
+                        break;
+                    case 'F':
+                        last_turn = 'F';
+                        break;
+                    case 'J':
+                        if (last_turn == 'F') { inside ^= true; }
+                        break;
+                    case '7':
+                        if (last_turn == 'L') { inside ^= true; }
+                        break;
+                    default:
+                        break;
+                }
+            } else if (inside) {
+                enclosed += 1;
+            }
+        }
+    }
+
+    return enclosed;
+}
+
+/**
+ * Solves the "Advent of Code 2023 day 10 part 2" problem. Calculates how many tiles are withing the area
+ * that is enclosed by the main loop.
+ *
+ * @param maze Instance of the day 10 problem.
+ * @return The number of steps from the starting position to the farthest position.
+ */
+unsigned SolvePart2(Maze &maze) {
+    // copy of the maze used to highlight the main loop
+    Maze maze_hl(maze);
+
+    // find S
+    const auto s_pos = FindS(maze_hl);
+
+    // bounding rectange coordinates
+    Vec2 top_left = s_pos;
+    Vec2 bot_right = s_pos;
+
+    Vec2 prev = s_pos;
+    Vec2 curr = FindLoopStart(maze_hl, s_pos);
+
+    Vec2 start = curr;
+    Vec2 end;
+
+    // walk along the main loop, highlight it and find the convex cover
+    while (true) {
+        auto conns = PipeConnections(maze_hl[curr.y][curr.x], curr);
+
+        if (!conns.has_value()) {
+            // looped back to 'S' (or reached '.' which shouldn't happen)
+            maze_hl[curr.y][curr.x] = '#';
+            end = prev;
+            break;
+        }
+
+        // highlight the main loop
+        maze_hl[curr.y][curr.x] = '#';
+
+        // resize bounding rectangle
+        top_left.x = std::min(top_left.x, curr.x);
+        top_left.y = std::min(top_left.y, curr.y);
+        bot_right.x = std::max(bot_right.x, curr.x);
+        bot_right.y = std::max(bot_right.y, curr.y);
+
+        // which way is forward?
+        if (conns->first == prev) {
+            prev = curr;
+            curr = conns->second;
+        } else {
+            prev = curr;
+            curr = conns->first;
+        }
+    }
+
+    // replace 'S' with a pipe
+    for (const char pipe_type: {'-', '|', 'F', '7', 'L', 'J'}) {
+        const auto conns = PipeConnections(pipe_type, s_pos); // will always have value
+        if ((conns->first == start && conns->second == end) || (conns->first == end && conns->second == start)) {
+            maze[s_pos.y][s_pos.x] = pipe_type;
+            break;
+        }
+    }
+
+    return CountEnclosed(maze, maze_hl, top_left, bot_right);
+}
+
 int main() {
-    for (auto input: {"input/day10_test1.txt", "input/day10_test2.txt", "input/day10.txt"}) {
+    for (auto input: {"input/day10_test1.txt", "input/day10_test2.txt", "input/day10_test3.txt", "input/day10.txt"}) {
         try {
-            const auto maze = LoadMaze(input);
-            const auto result = Solve(maze);
-            std::cout << "'" << input << "' = " << result << std::endl;
+            auto maze = LoadMaze(input);
+            const auto result1 = SolvePart1(maze);
+            const auto result2 = SolvePart2(maze);
+            std::cout << "'" << input << "' part1=" << result1 << " part2=" << result2 << std::endl;
         } catch (const std::runtime_error &e) {
             std::cerr << "Error running '" << input << "':" << std::endl
                     << e.what() << std::endl;
