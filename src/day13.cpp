@@ -59,27 +59,29 @@ std::vector<Island> LoadIslands(const std::string &in_file) {
  * @param mirror
  * @return
  */
-bool IsMirrored(const Island &island, const Direction direction, const size_t idx, const int mirror) {
+unsigned IsMirrored(const Island &island, const Direction direction, const size_t idx, const int mirror) {
     const int l_start = mirror;
     const int l_end = 0;
     const int r_start = mirror + 1;
     const int r_end = direction == ROW ? island[0].size() - 1 : island.size() - 1;
 
-    // check palindrome
+    unsigned smudges = 0;
+
+    // check if row/column is mirrored and count smudges
     for (int l = l_start, r = r_start; l >= l_end && r <= r_end; --l, ++r) {
         if (direction == ROW) {
             // row
-            if (island[idx][l] != island[idx][r]) { return false; }
+            if (island[idx][l] != island[idx][r]) { smudges += 1; }
         } else {
             // column
-            if (island[l][idx] != island[r][idx]) { return false; }
+            if (island[l][idx] != island[r][idx]) { smudges += 1; }
         }
     }
 
-    return true;
+    return smudges;
 }
 
-unsigned SolvePart1(const std::vector<Island> &islands) {
+unsigned Solve(const std::vector<Island> &islands, const unsigned desired_smudges) {
     unsigned sum = 0;
 
     // find mirrors for all the islands
@@ -88,38 +90,54 @@ unsigned SolvePart1(const std::vector<Island> &islands) {
         const size_t cols = island_i[0].size();
 
         // try both directions
-        for (auto dir: {ROW, COL}) {
+        for (const auto dir: {ROW, COL}) {
             const int mirror_max = dir == ROW ? cols - 2 : rows - 2;
             const size_t i_max = dir == ROW ? rows - 1 : cols - 1;
 
             // try all mirrors
-            bool is_mirrored = false;
+            unsigned smudges = 0;
             for (int mirror = 0; mirror <= mirror_max; ++mirror) {
+                smudges = 0;
+
                 // check all rows/columns
                 for (int i = 0; i <= i_max; ++i) {
-                    is_mirrored = IsMirrored(island_i, dir, i, mirror);
-                    if (!is_mirrored) { break; }
+                    smudges += IsMirrored(island_i, dir, i, mirror);
+                    if (smudges > desired_smudges) { break; }
                 }
                 // all rows/columns checked
-                if (is_mirrored) {
+                if (smudges == desired_smudges) {
                     // solution (mirror, dir) found
                     sum += dir == ROW ? mirror + 1 : (mirror + 1) * 100;
                     break;
                 }
             }
-            if (is_mirrored) { break; }
+            if (smudges == desired_smudges) { break; }
         }
     }
 
     return sum;
 }
 
+unsigned SolvePart1(const std::vector<Island> &islands) {
+    return Solve(islands, 0);
+}
+
+unsigned SolvePart2(const std::vector<Island> &islands) {
+    return Solve(islands, 1);
+}
+
 
 int main() {
-    //auto islands = LoadIslands("input/day13_test1.txt");
-    auto islands = LoadIslands("input/day13.txt");
-    unsigned sum = SolvePart1(islands);
-    std::cout << sum << std::endl;
-
+    const std::string input = "input/day13.txt";
+    try {
+        const auto islands = LoadIslands(input);
+        const auto result1 = SolvePart1(islands);
+        const auto result2 = SolvePart2(islands);
+        std::cout << "'" << input << "' part1=" << result1 << " part2=" << result2 << std::endl;
+    } catch (const std::runtime_error &e) {
+        std::cerr << "Error running '" << input << "':" << std::endl
+                << e.what() << std::endl;
+        return 1;
+    }
     return 0;
 }
