@@ -44,12 +44,14 @@ std::vector<Island> LoadIslands(const std::string &in_file) {
         }
     }
 
+    islands.push_back(curr_island); // last island
     file.close();
 
     return islands;
 }
 
 /**
+ * Checks if row or column is mirrored.
  *
  * @param island
  * @param direction Check ROW or COLUMN.
@@ -77,14 +79,47 @@ bool IsMirrored(const Island &island, const Direction direction, const size_t id
     return true;
 }
 
+unsigned SolvePart1(const std::vector<Island> &islands) {
+    unsigned sum = 0;
 
-int main() {
-    auto islands = LoadIslands("input/day13.txt");
+    // find mirrors for all the islands
+    for (const Island &island_i: islands) {
+        const size_t rows = island_i.size();
+        const size_t cols = island_i[0].size();
 
-    for (size_t r = 0; r < islands[0].size(); r++) {
-        std::cout << IsMirrored(islands[0], ROW, r, 5) << std::endl;
+        // try both directions
+        for (auto dir: {ROW, COL}) {
+            const int mirror_max = dir == ROW ? cols - 2 : rows - 2;
+            const size_t i_max = dir == ROW ? rows - 1 : cols - 1;
+
+            // try all mirrors
+            bool is_mirrored = false;
+            for (int mirror = 0; mirror <= mirror_max; ++mirror) {
+                // check all rows/columns
+                for (int i = 0; i <= i_max; ++i) {
+                    is_mirrored = IsMirrored(island_i, dir, i, mirror);
+                    if (!is_mirrored) { break; }
+                }
+                // all rows/columns checked
+                if (is_mirrored) {
+                    // solution (mirror, dir) found
+                    sum += dir == ROW ? mirror + 1 : (mirror + 1) * 100;
+                    break;
+                }
+            }
+            if (is_mirrored) { break; }
+        }
     }
 
+    return sum;
+}
+
+
+int main() {
+    //auto islands = LoadIslands("input/day13_test1.txt");
+    auto islands = LoadIslands("input/day13.txt");
+    unsigned sum = SolvePart1(islands);
+    std::cout << sum << std::endl;
 
     return 0;
 }

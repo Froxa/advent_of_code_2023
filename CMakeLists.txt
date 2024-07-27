@@ -4,3 +4,4 @@ project(AdventOfCode2023)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(day10 src/day10.cpp)
+add_executable(day13 src/day13.cpp)
