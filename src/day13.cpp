@@ -7,18 +7,18 @@
 #include <optional>
 
 /**
-* 2D lava island with mirrors.
+ * 2D lava island with mirrors.
  */
 using Island = std::vector<std::string>;
 
 /**
-* Used to specify mirror orientation.
+ * Used to specify mirror orientation.
  */
 enum Direction { ROW, COL };
 
 
 /**
-* Loads an lava island from an input file.
+ * Loads an lava island from an input file.
  *
  * @param in_file Text file containing the lava island.
  * @return Vector of loaded islands.
@@ -53,11 +53,11 @@ std::vector<Island> LoadIslands(const std::string &in_file) {
 /**
  * Checks if row or column is mirrored.
  *
- * @param island
+ * @param island Lava island.
  * @param direction Check ROW or COLUMN.
- * @param idx
- * @param mirror
- * @return
+ * @param idx Index of the row or column to be checked.
+ * @param mirror Mirror position.
+ * @return The number of smudges.
  */
 unsigned IsMirrored(const Island &island, const Direction direction, const size_t idx, const int mirror) {
     const int l_start = mirror;
@@ -81,6 +81,13 @@ unsigned IsMirrored(const Island &island, const Direction direction, const size_
     return smudges;
 }
 
+/**
+ * Solves the day 13 part 1 or part 2 problem.
+ *
+ * @param islands Lava islands.
+ * @param desired_smudges Set to 0 for part 1 or to 1 for part 2.
+ * @return Sum of all the lines of reflection in each of the patterns.
+ */
 unsigned Solve(const std::vector<Island> &islands, const unsigned desired_smudges) {
     unsigned sum = 0;
 
