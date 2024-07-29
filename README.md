@@ -33,7 +33,9 @@ The proposed solution is inspired by the scanline fill algorithm used to fill po
 `-` tiles have no impact on the `inside` variable. Finally, count every tile which is visited while `inside == true` and which is not part of the main loop. 
 
 ## Day 13: Point of Incidence
-Point of Incidence deals with lava islands with mirrors. Lava island is a 2d grid filled with ash (`.`) and rocks (`#`). 
+Point of Incidence deals with lava islands with mirrors. Lava island is a 2d grid filled with ash (`.`) and rocks (`#`).
+
+(Full specification is available at https://adventofcode.com/2023/day/13.)
 
 ### Part 1
 The objective of part 1 is to find the position of a line of mirrors that are placed between two rows or columns.
@@ -44,34 +46,4 @@ The proposed solution iterates over all possible placements of the mirrors and c
 Part 2 is the same as part 1 except now we assume that exactly one `.` or `#` should be the opposite type.
 
 The proposed algorithm is the same except this time the mirror placement is considered valid if there is exactly 1 mismatch between a tile and its reflection.
-
-(Full specification is available at https://adventofcode.com/2023/day/13.)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
